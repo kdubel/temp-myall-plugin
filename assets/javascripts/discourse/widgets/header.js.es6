@@ -104,7 +104,7 @@ createWidget('myall-links', {
       { title: 'About us', href: '#', class: '.menu-link', dropdown: [
         { title: "Our team", class: '.submenu-link', href: "http://myallergy.com/about" },
         { title: "Consumer", class: '.submenu-link', href: "http://myallergy.com/consumer" },
-        { title: "School", class: '.submenu-link', href: "http://myallergy.com/school" },
+        { title: "School and Business", class: '.submenu-link', href: "http://myallergy.com/school" },
       ]},
       { title: 'Explore', class: '.menu-link', href: 'http://myallergy.com/blog' },
       { title: 'Forum', class: '.menu-link', href: 'http://myallergy.com/community' },
@@ -115,7 +115,8 @@ createWidget('myall-links', {
 
     const links = buildMenu(menu)
     const mobile_button = h('button.menu-button', { 'onclick': mobile_switch }, h('i.fa.fa-bars', { attributes: { 'aria-hidden': 'true' } }))
-
+    const sign_in_button = h('li.right-menu', h('a#login-btn.menu-link', { href: "http://app.myallergy.themasters.io" }, "To Application"))
+    links.push(sign_in_button)
     return [mobile_button, h('ul.nav#menu', links)];
   }
 });
