@@ -65,58 +65,58 @@ createWidget('header-notifications', {
 
 // MYALL HEADER LINKS
 
+const buildMenu = function(menu) {
+  return menu.map(function(menu_item){
+    var element = "li";
+    var link = buildLink(menu_item);
+    var content = [link];
+
+    if(menu_item['dropdown']) {
+      content.push( h('ul.dropdown-menu', buildMenu(menu_item['dropdown'])) );
+      link.properties.attributes['data-toggle'] = 'dropdown';
+      element += ".dropdown";
+    }
+
+    return h(element, content)
+  });
+}
+
+const buildLink = function(link) {
+  var element = 'a'+link['class'];
+  var attributes = { 'href': link['href'] };
+  var title = link['title'];
+  return h(element, {attributes: attributes}, title)
+}
+
+const mobile_switch = function (ev) {
+  if($("#menu").hasClass("active"))
+    $("#menu").removeClass("active");
+  else
+    $("#menu").addClass("active")
+}
+
 createWidget('myall-links', {
   tagName: 'div.header-links-wrapper.clearfix',
 
   html(attrs) {
 
-    const links = [];
+    const menu = [
+      { title: 'About us', href: '#', class: '.menu-link', dropdown: [
+        { title: "Our team", class: '.submenu-link', href: "http://myallergy.com/about" },
+        { title: "Consumer", class: '.submenu-link', href: "http://myallergy.com/consumer" },
+        { title: "School", class: '.submenu-link', href: "http://myallergy.com/school" },
+      ]},
+      { title: 'Explore', class: '.menu-link', href: 'http://myallergy.com/blog' },
+      { title: 'Forum', class: '.menu-link', href: 'http://myallergy.com/community' },
+      { title: 'Products', class: '.menu-link', href: 'http://myallergy.com/community' },
+      { title: 'Say Hello', class: '.menu-link', href: 'http://myallergy.com/contact' },
+    ]
 
-    links.push(h('a.header-link.u-button', {
-      target: '_blank'  ,
-      href: 'http://myallergy.com/about'
-    },
-    'About us' ));
 
-    links.push(h('a.header-link.u-button', {
-      target: '_blank'  ,
-      href: 'http://myallergy.com/blog'
-    },
-    'Explore' ));
+    const links = buildMenu(menu)
+    const mobile_button = h('button.menu-button', { 'onclick': mobile_switch }, h('i.fa.fa-bars', { attributes: { 'aria-hidden': 'true' } }))
 
-    links.push(h('a.header-link.u-button', {
-      target: '_blank'  ,
-      href: 'http://myallergy.com/community'
-    },
-    'Forum' ));
-
-    links.push(h('a.header-link.u-button', {
-      target: '_blank'  ,
-      href: 'http://myallergy.com/products'
-    },
-    'Products' ));
-
-    links.push(h('a.header-link.u-button', {
-      target: '_blank'  ,
-      href: 'http://myallergy.com/contact'
-    },
-    'Say Hello' ));
-
-    const mobile_icon = h('a.dropdown-toggle', { attributes: { 'data-toggle': 'dropdown', 'href': '#' } }, h('i.fa.fa-bars'))
-    const mobile_links = []
-    links.map( function(link) {
-      mobile_links.push(h('li', link))
-    });
-
-    const desktop = h('div.desktop', {}, links)
-
-    const mobile = h('div.mobile', {}, [mobile_icon, h('ul.dropdown-menu', mobile_links)])
-
-    const header_links = []
-    header_links.push(desktop);
-    header_links.push(mobile);
-
-    return header_links;
+    return [mobile_button, h('ul.nav#menu', links)];
   }
 });
 
