@@ -1,9 +1,10 @@
 import { createWidget } from 'discourse/widgets/widget';
-import { iconNode } from 'discourse/helpers/fa-icon-node';
+import { iconNode } from 'discourse-common/lib/icon-library';
 import { avatarImg } from 'discourse/widgets/post';
 import DiscourseURL from 'discourse/lib/url';
 import { wantsNewWindow } from 'discourse/lib/intercept-click';
 import { applySearchAutocomplete } from "discourse/lib/search";
+import { ajax } from 'discourse/lib/ajax';
 
 import { h } from 'virtual-dom';
 
@@ -27,23 +28,26 @@ createWidget('header-notifications', {
   },
 
   html(attrs) {
-    const { currentUser } = this;
+    const { user } = attrs;
 
     const contents = [ avatarImg(this.settings.avatarSize, {
-      template: currentUser.get('avatar_template'),
-      username: currentUser.get('username')
+      template: user.get('avatar_template'),
+      username: user.get('username')
     }) ];
 
-    const unreadNotifications = currentUser.get('unread_notifications');
+    const unreadNotifications = user.get('unread_notifications');
     if (!!unreadNotifications) {
-      contents.push(this.attach('link', { action: attrs.action,
-                                          className: 'badge-notification unread-notifications',
-                                          rawLabel: unreadNotifications }));
+      contents.push(this.attach('link', {
+        action: attrs.action,
+        className: 'badge-notification unread-notifications',
+        rawLabel: unreadNotifications,
+        omitSpan: true
+      }));
     }
 
-    const unreadPMs = currentUser.get('unread_private_messages');
+    const unreadPMs = user.get('unread_private_messages');
     if (!!unreadPMs) {
-      if (!currentUser.get('read_first_notification')) {
+      if (!user.get('read_first_notification')) {
         contents.push(h('span.ring'));
         if (!attrs.active && attrs.ringBackdrop) {
           contents.push(h('span.ring-backdrop-spotlight'));
@@ -54,9 +58,12 @@ createWidget('header-notifications', {
         }
       };
 
-      contents.push(this.attach('link', { action: attrs.action,
-                                          className: 'badge-notification unread-private-messages',
-                                          rawLabel: unreadPMs }));
+      contents.push(this.attach('link', {
+        action: attrs.action,
+        className: 'badge-notification unread-private-messages',
+        rawLabel: unreadPMs,
+        omitSpan: true
+      }));
     }
 
     return contents;
@@ -128,9 +135,7 @@ createWidget('user-dropdown', jQuery.extend({
   },
 
   html(attrs) {
-    const { currentUser } = this;
-
-    return h('a.icon', { attributes: { href: currentUser.get('path'), 'data-auto-route': true } },
+    return h('a.icon', { attributes: { href: attrs.user.get('path'), 'data-auto-route': true } },
              this.attach('header-notifications', attrs));
   }
 }, dropdown));
@@ -146,16 +151,23 @@ createWidget('header-dropdown', jQuery.extend({
       body.push(attrs.contents.call(this));
     }
 
-    return h('a.icon', { attributes: { href: attrs.href,
-                                       'data-auto-route': true,
-                                       title,
-                                       'aria-label': title,
-                                       id: attrs.iconId } }, body);
+    return h(
+      'a.icon.btn-flat',
+      { attributes: {
+        href: attrs.href,
+          'data-auto-route': true,
+          title,
+          'aria-label': title,
+          id: attrs.iconId
+        }
+      },
+      body
+    );
   }
 }, dropdown));
 
 createWidget('header-icons', {
-  tagName: 'ul.icons.clearfix',
+  tagName: 'ul.icons.d-header-icons.clearfix',
 
   buildAttributes() {
     return { role: 'navigation' };
@@ -188,10 +200,13 @@ createWidget('header-icons', {
                    });
 
     const icons = [search, hamburger];
-    if (this.currentUser) {
-      icons.push(this.attach('user-dropdown', { active: attrs.userVisible,
-                                                action: 'toggleUserMenu',
-                                                ringBackdrop: attrs.ringBackdrop }));
+    if (attrs.user) {
+      icons.push(this.attach('user-dropdown', {
+        active: attrs.userVisible,
+        action: 'toggleUserMenu',
+        ringBackdrop: attrs.ringBackdrop,
+        user: attrs.user
+      }));
     }
 
     return icons;
@@ -199,7 +214,7 @@ createWidget('header-icons', {
 });
 
 createWidget('header-buttons', {
-  tagName: 'span',
+  tagName: 'span.header-buttons',
 
   html(attrs) {
     if (this.currentUser) { return; }
@@ -253,7 +268,8 @@ export default createWidget('header', {
                                                   userVisible: state.userVisible,
                                                   searchVisible: state.searchVisible,
                                                   ringBackdrop: state.ringBackdrop,
-                                                  flagCount: attrs.flagCount })];
+                                                  flagCount: attrs.flagCount,
+                                                  user: this.currentUser })];
 
     if (state.searchVisible) {
       const contextType = this.searchContextType();
@@ -292,6 +308,7 @@ export default createWidget('header', {
       contents.push(this.attach('myall-links'));
     }
 
+
     return h('div.wrap', h('div.contents.clearfix', contents));
   },
 
@@ -309,7 +326,29 @@ export default createWidget('header', {
   },
 
   linkClickedEvent(attrs) {
-    if (!(attrs && attrs.searchContextEnabled)) this.closeAll();
+
+    let searchContextEnabled = false;
+    if (attrs) {
+      searchContextEnabled = attrs.searchContextEnabled;
+
+      const { searchLogId, searchResultId, searchResultType } = attrs;
+      if (searchLogId && searchResultId && searchResultType) {
+
+        ajax('/search/click', {
+          type: 'POST',
+          data: {
+            search_log_id: searchLogId,
+            search_result_id: searchResultId,
+            search_result_type: searchResultType
+          }
+        });
+      }
+    }
+
+    if (!searchContextEnabled) {
+      this.closeAll();
+    }
+
     this.updateHighlight();
   },
 
