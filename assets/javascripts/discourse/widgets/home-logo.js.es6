@@ -8,7 +8,7 @@ export default createWidget('home-logo', {
   tagName: 'div.title',
 
   settings: {
-    href: "http://myallergy.com"
+    href: "http://myallergy.themasters.io"
   },
 
   href() {
