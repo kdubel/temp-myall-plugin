@@ -107,12 +107,12 @@ createWidget('myall-links', {
   html(attrs) {
 
     const menu = [
-      { title: 'About us', href: '#', class: '.menu-link', href: "http://myallergy.themasters.io/about" },
+      { title: 'About us', href: '#', class: '.menu-link', href: "http://myallergy.com/about" },
       { title: 'Explore', class: '.menu-link', href: 'http://www.myallergy.com/blog' },
-      { title: 'Forum', class: '.menu-link', href: 'http://myallergy.themasters.io/community' },
-      { title: 'Products', class: '.menu-link', href: 'http://myallergy.themasters.io/products' },
-      { title: 'Apps', class: '.menu-link', href: "http://myallergy.themasters.io/apps" },
-      { title: 'Services', class: '.menu-link', href: 'http://myallergy.themasters.io/contact' },
+      { title: 'Forum', class: '.menu-link', href: 'http://myallergy.com/community' },
+      { title: 'Products', class: '.menu-link', href: 'http://myallergy.com/products' },
+      { title: 'Apps', class: '.menu-link', href: "http://myallergy.com/apps" },
+      { title: 'Services', class: '.menu-link', href: 'http://myallergy.com/contact' },
     ]
 
 
